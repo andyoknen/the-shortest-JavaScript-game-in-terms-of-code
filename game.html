@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Dodge Game</title>
+<style>body{margin:0;display:flex;justify-content:center;align-items:center;height:100vh;background:#222;font-family:Arial}canvas{border:2px solid #fff}</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+// Game setup
+const c=document.getElementById('c'),x=c.getContext('2d'),W=400,H=600;
+c.width=W;c.height=H;
+
+// Player state
+let p={x:W/2-15,y:H-60,w:30,h:30,s:5},k={},o=[],sc=0,gm=0,sp=2;
+
+// Input handling
+onkeydown=e=>k[e.key]=1;
+onkeyup=e=>k[e.key]=0;
+
+// Game loop
+setInterval(()=>{
+  // Clear screen
+  x.fillStyle='#000';
+  x.fillRect(0,0,W,H);
+  
+  if(!gm){
+    // Move player
+    if((k.ArrowLeft||k.a)&&p.x>0)p.x-=p.s;
+    if((k.ArrowRight||k.d)&&p.x<W-p.w)p.x+=p.s;
+    
+    // Spawn obstacles
+    if(Math.random()<0.02){
+      o.push({x:Math.random()*(W-40),y:-30,w:40,h:30,s:sp});
+    }
+    
+    // Update obstacles
+    for(let i=o.length-1;i>=0;i--){
+      o[i].y+=o[i].s;
+      
+      // Collision detection
+      if(o[i].y<H&&o[i].y+o[i].h>p.y&&o[i].x<p.x+p.w&&o[i].x+o[i].w>p.x){
+        gm=1;
+      }
+      
+      // Remove off-screen
+      if(o[i].y>H){
+        o.splice(i,1);
+        sc++;
+        if(sc%10===0)sp+=0.5; // Increase difficulty
+      }
+    }
+    
+    // Draw player
+    x.fillStyle='#0f0';
+    x.fillRect(p.x,p.y,p.w,p.h);
+    
+    // Draw obstacles
+    x.fillStyle='#f00';
+    o.forEach(b=>x.fillRect(b.x,b.y,b.w,b.h));
+    
+    // Draw score
+    x.fillStyle='#fff';
+    x.font='20px Arial';
+    x.fillText('Score: '+sc,10,30);
+  }else{
+    // Game over screen
+    x.fillStyle='#fff';
+    x.font='40px Arial';
+    x.textAlign='center';
+    x.fillText('GAME OVER',W/2,H/2-40);
+    x.font='30px Arial';
+    x.fillText('Score: '+sc,W/2,H/2+10);
+    x.font='20px Arial';
+    x.fillText('Press R to restart',W/2,H/2+60);
+    
+    if(k.r||k.R){
+      // Reset game
+      p.x=W/2-15;o=[];sc=0;gm=0;sp=2;
+    }
+  }
+},1000/60);
+</script>
+</body>
+</html>
